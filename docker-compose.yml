@@ -1,0 +1,24 @@
+services:
+  db:
+    container_name: postgres-customer
+    image: postgres
+    environment:
+      POSTGRES_USER: customer
+      POSTGRES_PASSWORD: customer
+      POSTGRES_DATABASE: customer
+      PGDATA: /data/postgres
+    volumes:
+      - db:/data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - db
+    restart: unless-stopped
+
+networks:
+  db:
+    driver: bridge
+
+volumes:
+  db:
+
