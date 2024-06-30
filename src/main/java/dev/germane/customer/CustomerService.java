@@ -3,6 +3,7 @@ package dev.germane.customer;
 import dev.germane.exception.DuplicateResourceException;
 import dev.germane.exception.RequestValidationException;
 import dev.germane.exception.ResourceNotFoundException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public class CustomerService {
 
     private final CustomerDao customerDao;
 
-    public CustomerService(CustomerDao customerDao) {
+    public CustomerService(@Qualifier("jdbc") CustomerDao customerDao) {
         this.customerDao = customerDao;
     }
 
@@ -20,7 +21,7 @@ public class CustomerService {
         return customerDao.selectAllCustomers();
     }
 
-    public Customer getCustomer(Integer id){
+    public Customer getCustomer(Long id){
         return customerDao.selectCustomerById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ("customer with id [%s] not found").formatted(id)
@@ -43,7 +44,7 @@ public class CustomerService {
         customerDao.insertCustomer(customer);
     }
 
-    public void deleteCustomerById(Integer customerId) {
+    public void deleteCustomerById(Long customerId) {
         //check if customer exists
         if(!customerDao.existsCustomerWithId(customerId)){
             throw new ResourceNotFoundException(
@@ -53,7 +54,7 @@ public class CustomerService {
         customerDao.deleteById(customerId);
     }
 
-    public void updateCustomer(Integer customerId, CustomerUpdateRequest request) {
+    public void updateCustomer(Long customerId, CustomerUpdateRequest request) {
         Customer  customer = getCustomer(customerId);
 
         boolean changes = false;
