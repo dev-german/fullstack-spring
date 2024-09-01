@@ -7,7 +7,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/customer
     username: customer
-    password: password
+    password: customer
   jpa:
     hibernate:
       ddl-auto: validate
