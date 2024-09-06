@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: customer
       POSTGRES_PASSWORD: customer
-      POSTGRES_DATABASE: customer
+      POSTGRES_DB: customer
       PGDATA: /data/postgres
     volumes:
       - db:/data/postgres
