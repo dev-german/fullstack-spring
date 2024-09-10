@@ -3,7 +3,7 @@
   "containerDefinitions": [
     {
       "name": "customer-api",
-      "image": "devgerman/customer-api:latest",
+      "image": "devgerman/customer-api:10.09.2024.20.00.58",
       "essential": true,
       "memory": 256,
       "portMappings": [
