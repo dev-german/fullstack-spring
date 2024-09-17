@@ -38,8 +38,8 @@ public class CustomerService {
         Customer customer = new Customer(
                 customerRegistrationRequest.name(),
                 customerRegistrationRequest.email(),
-                customerRegistrationRequest.age()
-        );
+                customerRegistrationRequest.age(),
+                customerRegistrationRequest.gender());
 
         customerDao.insertCustomer(customer);
     }
@@ -50,7 +50,7 @@ public class CustomerService {
             throw new ResourceNotFoundException(
                     "Customer with id [%s] not found".formatted(customerId)
             );
-        };
+        }
         customerDao.deleteById(customerId);
     }
 
@@ -66,6 +66,11 @@ public class CustomerService {
 
         if(request.age() != null && !request.age().equals(customer.getAge())){
             customer.setAge(request.age());
+            changes = true;
+        }
+
+        if(request.gender() != null && !request.gender().equals(customer.getGender())){
+            customer.setGender(request.gender());
             changes = true;
         }
 
