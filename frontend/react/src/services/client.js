@@ -6,9 +6,10 @@ export const getCustomers = async () => {
       `${import.meta.env.VITE_API_BASE_URL}/api/v1/customers`
     );
   } catch (err) {
+    console.log(err)
     throw err;
   }
-};
+}
 
 export const saveCustomer = async (customer) => {
   try {
@@ -17,6 +18,18 @@ export const saveCustomer = async (customer) => {
       customer
     );
   } catch (err) {
+    console.log(err)
     throw err;
   }
-};
+}
+
+export const deleteCustomer = async (id) => {
+  try {
+    return await axios.delete(
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/customers/${id}`
+    );
+  } catch (err) {
+    console.log(err)
+    throw err;
+  }
+}
