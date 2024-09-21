@@ -3,7 +3,7 @@ import SidebarWithHeader from "./components/shared/SideBar";
 import { useEffect, useState } from "react";
 import { getCustomers } from "./services/client";
 import CardWithImage from "./components/Card";
-import DrawerForm from "./components/DrawerForm";
+import CreateCustomerDrawer from "./components/CreateCustomerDrawer";
 import { errorNotification } from "./services/notification";
 
 const App = () => {
@@ -50,7 +50,7 @@ const App = () => {
   if(error){
     return (
       <SidebarWithHeader>
-        <DrawerForm fetchCustomers={fetchCustomers} />
+        <CreateCustomerDrawer fetchCustomers={fetchCustomers} />
         <Text mt={5}>ooops there was an error</Text>
       </SidebarWithHeader>
     );
@@ -59,7 +59,7 @@ const App = () => {
   if (customers.length <= 0) {
     return (
       <SidebarWithHeader>
-        <DrawerForm fetchCustomers={fetchCustomers} />
+        <CreateCustomerDrawer fetchCustomers={fetchCustomers} />
         <Text mt={5}>No customers available</Text>
       </SidebarWithHeader>
     );
@@ -67,7 +67,7 @@ const App = () => {
 
   return (
     <SidebarWithHeader>
-      <DrawerForm fetchCustomers={fetchCustomers} />
+      <CreateCustomerDrawer fetchCustomers={fetchCustomers} />
       <Wrap justify={"center"} spacing={"30px"}>
         {customers.map((customer, index) => (
           <WrapItem key={index}>
