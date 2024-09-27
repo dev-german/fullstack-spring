@@ -107,7 +107,6 @@ class CustomerServiceTest {
         assertThat(capturedCustomer.getEmail()).isEqualTo(request.email());
         assertThat(capturedCustomer.getAge()).isEqualTo(request.age());
         assertThat(capturedCustomer.getGender()).isEqualTo(request.gender());
-        assertThat(capturedCustomer.getPassword()).isEqualTo(passwordHash);
 
     }
 

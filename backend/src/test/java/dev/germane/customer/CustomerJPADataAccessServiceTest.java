@@ -54,7 +54,7 @@ class CustomerJPADataAccessServiceTest {
         Customer customer = new Customer(
                 "German",
                 "german@gmail.com",
-                20,
+                "password", 20,
                 Gender.MALE);
         // When
         underTest.insertCustomer(customer);
@@ -100,7 +100,7 @@ class CustomerJPADataAccessServiceTest {
         Customer customer = new Customer(
                 "German",
                 "german@gmail.com",
-                20,
+                "password", 20,
                 Gender.MALE);
 
         // When

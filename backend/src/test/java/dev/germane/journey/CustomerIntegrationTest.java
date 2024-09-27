@@ -36,9 +36,10 @@ public class CustomerIntegrationTest {
         String email = fakerName.lastName() + UUID.randomUUID() + "@chanchito.com";
         int age = faker.random().nextInt(1, 100);
         Gender gender = faker.options().option(Gender.class);
+        String password = faker.internet().password();
 
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
-                name, email, age, gender
+                name, email, "password", age, gender
         );
         // send a post request
 
@@ -64,7 +65,7 @@ public class CustomerIntegrationTest {
                 .getResponseBody();
 
         Customer expectedCustomer = new Customer(
-                name, email, age, gender);
+                name, email, password, age, gender);
 
         // make sure that customer is present
         assertThat(allCustomers)
@@ -101,9 +102,8 @@ public class CustomerIntegrationTest {
         int age = faker.random().nextInt(1, 100);
         Gender gender = faker.options().option(Gender.class);
 
-
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
-                name, email, age, gender
+                name, email, "password", age, gender
         );
         // send a post request
 
@@ -159,10 +159,10 @@ public class CustomerIntegrationTest {
         String email = fakerName.lastName() + UUID.randomUUID() + "@chanchito.com";
         int age = faker.random().nextInt(1, 100);
         Gender gender = faker.options().option(Gender.class);
-
+        String password = faker.internet().password();
 
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(
-                name, email, age, gender
+                name, email, "password", age, gender
         );
         // send a post request
 
@@ -195,7 +195,7 @@ public class CustomerIntegrationTest {
 
         String newName = "Billy";
         CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(
-                newName,  null, null, null
+                newName,  null,null, null
         );
 
         //update customer
@@ -220,7 +220,7 @@ public class CustomerIntegrationTest {
                 .getResponseBody();
 
         Customer expected = new Customer(
-                id, newName, email, age, gender);
+                id, newName, email, password, age, gender);
 
         assertThat(updatedCustomer).isEqualTo(expected);
     }

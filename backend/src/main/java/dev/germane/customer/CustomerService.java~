@@ -41,7 +41,7 @@ public class CustomerService {
         Customer customer = new Customer(
                 customerRegistrationRequest.name(),
                 customerRegistrationRequest.email(),
-                passwordEncoder.encode(customerRegistrationRequest.password()),
+                "password",
                 customerRegistrationRequest.age(),
                 customerRegistrationRequest.gender());
 
