@@ -41,6 +41,11 @@ public class SecurityFilterChainConfig {
                                 "/api/v1/customers",
                                 "/api/v1/auth/login")
                         .permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/test"
+                        )
+                        .permitAll()
                         .anyRequest()
                         .authenticated())
                 .sessionManagement(session -> session
