@@ -15,7 +15,7 @@
     },
     {
       "name": "customer-api",
-      "image": "devgerman/customer-api:latest",
+      "image": "devgerman/customer-api:01.10.2024.19.43.18",
       "essential": true,
       "memory": 256,
       "portMappings": [
