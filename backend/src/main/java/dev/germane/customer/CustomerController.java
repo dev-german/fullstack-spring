@@ -1,11 +1,12 @@
 package dev.germane.customer;
 
 import dev.germane.jwt.JWTUtil;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @RestController
 @RequestMapping("api/v1/customers")
@@ -20,12 +21,12 @@ public class CustomerController {
     }
 
     @GetMapping
-    public List<Customer> getCustomers() {
+    public List<CustomerDTO> getCustomers() {
         return customerService.getAllCustomers();
     }
 
     @GetMapping("{customerId}")
-    public Customer getCustomerById(@PathVariable("customerId") Long customerId) {
+    public CustomerDTO getCustomerById(@PathVariable("customerId") Long customerId) {
         return customerService.getCustomer(customerId);
     }
 
@@ -34,7 +35,7 @@ public class CustomerController {
         customerService.addCustomer(request);
         String jwtToken = jwtUtil.issueToken(request.email(), "ROLE_USER");
         return ResponseEntity.ok()
-                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .header(AUTHORIZATION, jwtToken)
                 .build();
     }
 

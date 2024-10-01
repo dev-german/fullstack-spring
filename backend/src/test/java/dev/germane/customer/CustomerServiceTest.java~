@@ -28,9 +28,11 @@ class CustomerServiceTest {
     @Mock
     private CustomerDao customerDao;
 
+    private final CustomerDTOMapper customerDTOMapper = new CustomerDTOMapper();
+
     @BeforeEach
     void setUp() {
-        underTest = new CustomerService(customerDao, passwordEncoder);
+        underTest = new CustomerService(customerDao, passwordEncoder,  customerDTOMapper);
     }
 
     @Test
@@ -55,7 +57,7 @@ class CustomerServiceTest {
         );
 
         // When
-        Customer actual = underTest.getCustomer(id);
+        CustomerDTO actual = underTest.getCustomer(id);
 
         // Then
         assertThat(actual).isEqualTo(customer);
@@ -107,6 +109,7 @@ class CustomerServiceTest {
         assertThat(capturedCustomer.getEmail()).isEqualTo(request.email());
         assertThat(capturedCustomer.getAge()).isEqualTo(request.age());
         assertThat(capturedCustomer.getGender()).isEqualTo(request.gender());
+        assertThat(capturedCustomer.getPassword()).isEqualTo(passwordHash);
 
     }
 
