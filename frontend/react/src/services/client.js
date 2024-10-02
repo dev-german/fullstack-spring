@@ -1,9 +1,17 @@
 import axios from "axios";
 
+const getAuthConfig = () => ({
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+  },
+})
+
 export const getCustomers = async () => {
   try {
     return await axios.get(
-      `${import.meta.env.VITE_API_BASE_URL}/api/v1/customers`
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/customers`,
+      getAuthConfig()
+
     );
   } catch (err) {
     console.log(err)
@@ -26,7 +34,8 @@ export const saveCustomer = async (customer) => {
 export const deleteCustomer = async (id) => {
   try {
     return await axios.delete(
-      `${import.meta.env.VITE_API_BASE_URL}/api/v1/customers/${id}`
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/customers/${id}`,
+      getAuthConfig()
     );
   } catch (err) {
     console.log(err)
@@ -38,10 +47,23 @@ export const updateCustomer = async (id, update) => {
   try {
     return await axios.put(
       `${import.meta.env.VITE_API_BASE_URL}/api/v1/customers/${id}`,
-      update
+      update,
+      getAuthConfig()
     );
   } catch (err) {
     console.log(err) 
+    throw err;
+  }
+}
+
+export const login = async (usernameAndPassword) => {
+  try {
+    return await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/login`,
+      usernameAndPassword
+    );
+  } catch (err) {
+    console.log(err)
     throw err;
   }
 }

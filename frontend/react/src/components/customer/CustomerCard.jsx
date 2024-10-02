@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Heading,
   Avatar,
@@ -21,11 +19,11 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import React from "react";
-import { deleteCustomer } from "../services/client";
+import { deleteCustomer } from "../../services/client";
 import {
   errorNotification,
   successNotification,
-} from "../services/notification";
+} from "../../services/notification";
 import UpdateCustomerDrawer from "./UpdateCustomerDrawer";
 
 export default function CardWithImage({

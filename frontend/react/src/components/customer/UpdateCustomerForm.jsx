@@ -10,8 +10,8 @@ import {
 } from "@chakra-ui/react";
 import { Formik, Form, useField } from "formik";
 import * as Yup from "yup";
-import { saveCustomer, updateCustomer } from "../services/client";
-import { errorNotification, successNotification } from "../services/notification";
+import { saveCustomer, updateCustomer } from "../../services/client";
+import { errorNotification, successNotification } from "../../services/notification";
 
 const MyTextInput = ({ label, ...props }) => {
   // useField() returns [formik.getFieldProps(), formik.getFieldMeta()]

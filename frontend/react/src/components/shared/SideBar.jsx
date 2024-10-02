@@ -32,7 +32,8 @@ import {
   FiChevronDown,
 } from "react-icons/fi";
 
-import logo from '../../assets/logo-black.png'
+import logo from "../../assets/logo-black.png";
+import { useAuth } from "../context/AuthContext";
 
 const LinkItems = [
   { name: "Home", icon: FiHome },
@@ -54,7 +55,15 @@ const SidebarContent = ({ onClose, ...rest }) => {
       h="full"
       {...rest}
     >
-      <Flex h="20" flexDirection="column" alignItems="center" mx="8" mb={50} mt={5} justifyContent="space-between">
+      <Flex
+        h="20"
+        flexDirection="column"
+        alignItems="center"
+        mx="8"
+        mb={50}
+        mt={5}
+        justifyContent="space-between"
+      >
         <Text fontSize="2xl" fontFamily="monospace" fontWeight="bold" mb={5}>
           Dashboard
         </Text>
@@ -113,6 +122,8 @@ const NavItem = ({ icon, children, ...rest }) => {
 };
 
 const MobileNav = ({ onOpen, ...rest }) => {
+  const { logout, customer } = useAuth();
+
   return (
     <Flex
       ml={{ base: 0, md: 60 }}
@@ -169,10 +180,12 @@ const MobileNav = ({ onOpen, ...rest }) => {
                   spacing="1px"
                   ml="2"
                 >
-                  <Text fontSize="sm">Justina Clark</Text>
-                  <Text fontSize="xs" color="gray.600">
-                    Admin
-                  </Text>
+                  <Text fontSize="sm">{customer?.username}</Text>
+                  {customer?.roles.map((role, id) => (
+                    <Text key={id} fontSize="xs" color="gray.600">
+                      {role}
+                    </Text>
+                  ))}
                 </VStack>
                 <Box display={{ base: "none", md: "flex" }}>
                   <FiChevronDown />
@@ -187,7 +200,7 @@ const MobileNav = ({ onOpen, ...rest }) => {
               <MenuItem>Settings</MenuItem>
               <MenuItem>Billing</MenuItem>
               <MenuDivider />
-              <MenuItem>Sign out</MenuItem>
+              <MenuItem onClick={logout}>Sign out</MenuItem>
             </MenuList>
           </Menu>
         </Flex>
