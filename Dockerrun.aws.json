@@ -3,7 +3,7 @@
   "containerDefinitions": [
     {
       "name": "customer-react",
-      "image": "devgerman/customer-react:latest",
+      "image": "devgerman/customer-react:03.10.2024.17.03.19",
       "essential": true,
       "memory": 256,
       "portMappings": [
