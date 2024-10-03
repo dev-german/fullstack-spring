@@ -1,9 +1,6 @@
 import {
   Button,
-  Checkbox,
   Flex,
-  Text,
-  FormControl,
   FormLabel,
   Heading,
   Input,
@@ -18,7 +15,7 @@ import { Formik, Form, useField } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "../context/AuthContext";
 import { errorNotification } from "../../services/notification";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 const MyTextInput = ({ label, ...props }) => {
@@ -110,7 +107,7 @@ const Login = () => {
     if (customer) {
       navigate("/dashboard");
     }
-  }, [customer]);
+  });
 
   return (
     <Stack minH={"100vh"} direction={{ base: "column", md: "row" }}>
@@ -121,6 +118,7 @@ const Login = () => {
             Sign in to your account
           </Heading>
           <LoginForm />
+          <Link color={"blue.500"} to={"/signup"}>Don&apos;t have an account? Signup now.</Link>
         </Stack>
       </Flex>
       <Flex flex={1}>
