@@ -2,25 +2,13 @@
   "AWSEBDockerrunVersion": 2,
   "containerDefinitions": [
     {
-      "name": "customer-react",
-      "image": "devgerman/customer-react:03.10.2024.17.03.19",
-      "essential": true,
-      "memory": 256,
-      "portMappings": [
-        {
-          "hostPort": 80,
-          "containerPort": 5173
-        }
-      ]
-    },
-    {
       "name": "customer-api",
       "image": "devgerman/customer-api:01.10.2024.19.43.18",
       "essential": true,
       "memory": 256,
       "portMappings": [
         {
-          "hostPort": 8080,
+          "hostPort": 80,
           "containerPort": 8080
         }
       ],

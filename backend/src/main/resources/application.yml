@@ -9,6 +9,7 @@ cors:
   allowed-headers: "*"
   exposed-headers: "*"
 
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/customer
@@ -23,3 +24,9 @@ spring:
     show_sql: true
   main:
     web-application-type: servlet
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
