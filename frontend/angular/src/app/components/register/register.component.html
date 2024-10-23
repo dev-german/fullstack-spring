@@ -1,0 +1,105 @@
+<div class="flex" style="height: 98vh">
+    <div class="col-6 flex flex-column justify-content-center">
+      <div class="m-auto">
+        <div class="text-center">
+          <p-avatar
+            [style]="{ width: '380px', height: '120px' }"
+            image="/assets/sunat-logo.png"
+            class="mr-2"
+            size="xlarge"
+          />
+          <h1>Register for an account</h1>
+        </div>
+        
+        <p-message 
+        *ngIf="errorMsg"
+        severity="error" 
+        [text]="errorMsg"
+        styleClass="mb-2"
+        ></p-message>
+
+        <div class="field">
+            <label for="name">Name</label>
+            <input
+              [(ngModel)]="customer.name"
+              id="name"
+              pInputText
+              placeholder="Jane"
+              type="text"
+              class="w-full"
+            />
+          </div>
+        
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            [(ngModel)]="customer.email"
+            id="email"
+            pInputText
+            placeholder="jane@gmail.com"
+            type="email"
+            class="w-full"
+          />
+        </div>
+
+        <div class="field">
+            <label for="age">Age</label>
+            <input
+              [(ngModel)]="customer.age"
+              id="age"
+              pInputText
+              placeholder="18"
+              type="number"
+              class="w-full"
+            />
+          </div>
+        
+        <div class="field">
+          <label for="password">Password</label>
+          <input
+            [(ngModel)]="customer.password"
+            id="password"
+            pInputText
+            placeholder="password"
+            type="password"
+            class="w-full"
+          />
+        </div>
+
+        <div class="field">
+            <label for="gender">Gender</label>
+            <select
+              [(ngModel)]="customer.gender"
+              id="gender"
+              class="p-dropdown w-full custom-select"
+            >
+              <option value="">Select a Gender</option>
+              <option value="MALE">MALE</option>
+              <option value="FEMALE">FEMALE</option>
+            </select>
+          </div>
+
+        <button
+        (click)="createAccount()"
+        pButton 
+        label="Register" 
+        class="w-full"
+        ></button>
+        <button
+          (click)="login()"  
+          pButton
+          label="Have an account? Login now."
+          class="w-full p-button-link text-left pl-0"
+        ></button>
+      </div>
+    </div>
+    <div
+      class="col-6 p-0 m-0 flex flex-column justify-content-center align-items-center right-container"
+    >
+      <img
+        class="background p-0"
+        src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1352&q=80"
+      />
+    </div>
+  </div>
+  

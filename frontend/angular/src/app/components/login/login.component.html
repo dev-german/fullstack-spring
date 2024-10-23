@@ -1,0 +1,65 @@
+<div class="flex" style="height: 98vh">
+  <div class="col-6 flex flex-column justify-content-center">
+    <div class="m-auto">
+      <div class="text-center">
+        <p-avatar
+          [style]="{ width: '380px', height: '120px' }"
+          image="/assets/sunat-logo.png"
+          class="mr-2"
+          size="xlarge"
+        />
+        <h1>Sign in to your account</h1>
+      </div>
+      
+      <p-message 
+      *ngIf="errorMsg"
+      severity="error" 
+      [text]="errorMsg"
+      styleClass="mb-2"
+      ></p-message>
+      
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          [(ngModel)]="authenticationRequest.username"
+          id="email"
+          pInputText
+          placeholder="jane@gmail.com"
+          type="email"
+          class="w-full"
+        />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+        [(ngModel)]="authenticationRequest.password"
+          id="password"
+          pInputText
+          placeholder="password"
+          type="password"
+          class="w-full"
+        />
+      </div>
+      <button 
+      pButton 
+      label="Login" 
+      class="w-full"
+      (click)="login()"
+      ></button>
+      <button
+        pButton
+        label="Don't have an account? Signup now."
+        class="w-full p-button-link text-left pl-0"
+        (click)="register()"
+      ></button>
+    </div>
+  </div>
+  <div
+    class="col-6 p-0 m-0 flex flex-column justify-content-center align-items-center right-container"
+  >
+    <img
+      class="background p-0"
+      src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1352&q=80"
+    />
+  </div>
+</div>

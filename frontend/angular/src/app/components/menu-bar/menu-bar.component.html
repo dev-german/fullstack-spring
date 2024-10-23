@@ -1,0 +1,17 @@
+<h4 class="text-center mt-0">Dashboard</h4>
+<div class="text-center">
+  <p-avatar
+    [style]="{ width: '120px', height: '75px' }"
+    image="/assets/logo-black.png"
+    class="mr-2"
+    size="xlarge"
+  />
+</div>
+<div>
+  <app-menu-item 
+    *ngFor="let item of menu"
+    [menuItem] = "item"
+  >
+    
+  </app-menu-item>
+</div>
