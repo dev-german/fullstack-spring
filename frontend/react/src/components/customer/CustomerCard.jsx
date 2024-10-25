@@ -19,7 +19,7 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import React from "react";
-import { deleteCustomer } from "../../services/client";
+import { customerProfilePictureUrl, deleteCustomer } from "../../services/client";
 import {
   errorNotification,
   successNotification,
@@ -63,7 +63,8 @@ export default function CardWithImage({
         <Flex justify={"center"} mt={-12}>
           <Avatar
             size={"xl"}
-            src={`https://randomuser.me/api/portraits/${genderImage}/${imageNumber}.jpg`}
+            src={customerProfilePictureUrl(id)}
+            alt={"Avatar"}
             css={{
               border: "2px solid white",
             }}
