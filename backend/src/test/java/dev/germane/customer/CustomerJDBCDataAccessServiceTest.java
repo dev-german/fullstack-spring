@@ -384,7 +384,13 @@ class CustomerJDBCDataAccessServiceTest extends AbstractTestcontainers {
         // Then
         Optional<Customer> actual = underTest.selectCustomerById(id);
 
-        assertThat(actual).isPresent().hasValue(update);
+        assertThat(actual).isPresent().hasValueSatisfying(c -> {
+            assertThat(c.getId()).isEqualTo(id);
+            assertThat(c.getName()).isEqualTo(newName);
+            assertThat(c.getEmail()).isEqualTo(newEmail);
+            assertThat(c.getAge()).isEqualTo(newAge);
+            assertThat(c.getGender()).isEqualTo(newGender);
+        });
     }
 
     @Test
@@ -423,5 +429,37 @@ class CustomerJDBCDataAccessServiceTest extends AbstractTestcontainers {
             assertThat(c.getAge()).isEqualTo(customer.getAge());
             assertThat(c.getGender()).isEqualTo(customer.getGender());
         });
+    }
+
+    @Test
+    void canUpdateProfileImageId() {
+        // Given
+        String email = FAKER.internet().safeEmailAddress()  + "-" + UUID.randomUUID();
+
+        Customer customer = new Customer(
+                FAKER.name().fullName(),
+                email,
+                "password", 20,
+                Gender.MALE);
+
+        underTest.insertCustomer(customer);
+
+        Long id = underTest.selectAllCustomers()
+                .stream()
+                .filter(c -> c.getEmail().equals(email))
+                .map(Customer::getId)
+                .findFirst()
+                .orElseThrow();
+
+        // When
+        String profileImageId = "profileImageId1234";
+        underTest.updateProfileImageId(id, profileImageId);
+
+        // Then
+        Optional<Customer> customerOptional = underTest.selectCustomerById(id);
+        assertThat(customerOptional)
+                .isPresent()
+                .hasValueSatisfying(c ->
+                        assertThat(c.getProfileImageId()).isEqualTo(profileImageId));
     }
 }

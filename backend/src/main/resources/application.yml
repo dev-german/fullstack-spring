@@ -9,6 +9,12 @@ cors:
   allowed-headers: "*"
   exposed-headers: "*"
 
+aws:
+  region: sa-east-1
+  s3:
+    mock: true
+    buckets:
+      customer: fs-devgerman-customer-test
 
 spring:
   datasource:
@@ -24,6 +30,12 @@ spring:
     show_sql: true
   main:
     web-application-type: servlet
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  codec:
+    max-in-memory-size: 10MB
 
 management:
   endpoints:

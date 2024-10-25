@@ -1,0 +1,9 @@
+aws:
+  s3:
+    mock: false
+
+spring:
+  datasource:
+    url: jdbc:postgresql://awseb-e-zrtemyjbqr-stack-awsebrdsdatabase-2htkwxwbg8sn.cnqaaw4ii1bn.sa-east-1.rds.amazonaws.com:5432/customer
+    username: customer
+    password: customer
