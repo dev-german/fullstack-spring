@@ -5,7 +5,7 @@
       "name": "customer-api",
       "image": "devgerman/customer-api:25.10.2024.18.54.39",
       "essential": true,
-      "memory": 256,
+      "memory": 512,
       "portMappings": [
         {
           "hostPort": 80,
