@@ -51,3 +51,9 @@ jobs:
           cache: 'maven'
       - name: Validate, Compile, Test, and Package with Maven
         run: mvn -ntp -B verify
+      - name: Publish coverage report to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./backend/target/site/jacoco/jacoco.xml
+          base-path: ./backend/src/main/java
