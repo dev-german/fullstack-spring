@@ -30,7 +30,7 @@ public abstract class AbstractTestcontainers {
 
     @Container
     protected static final PostgreSQLContainer<?> postgreSQLContainer =
-            new PostgreSQLContainer<>("postgres:latest")
+            new PostgreSQLContainer<>("postgres:15-alpine")
                     .withDatabaseName("customer-dao-unit-test")
                     .withUsername("customer")
                     .withPassword("password");
