@@ -16,4 +16,9 @@ public class TestController {
     public Test getTest2(){
         return new Test("test2");
     }
+
+    @GetMapping("/test3")
+    public Test getTest3(){
+        return new Test("test3");
+    }
 }
