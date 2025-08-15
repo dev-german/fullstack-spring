@@ -43,11 +43,7 @@ public class CustomerService {
     }
 
     public CustomerDTO getCustomer(Long id) {
-        return customerDao.selectCustomerById(id)
-                .map(customerDTOMapper)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ("customer with id [%s] not found").formatted(id)
-                ));
+        return customerDTOMapper.apply(getCustomerById(id));
     }
 
     public void addCustomer(
@@ -81,11 +77,7 @@ public class CustomerService {
     }
 
     public void updateCustomer(Long customerId, CustomerUpdateRequest request) {
-        Customer customer = customerDao.selectCustomerById(customerId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ("customer with id [%s] not found").formatted(customerId)
-                ));
-
+        Customer customer = getCustomerById(customerId);
         boolean changes = false;
 
         if (request.name() != null && !request.name().equals(customer.getName())) {
@@ -135,13 +127,9 @@ public class CustomerService {
     }
 
     public byte[] getCustomerProfileImage(Long customerId) {
-        CustomerDTO customer = customerDao.selectCustomerById(customerId)
-                .map(customerDTOMapper)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ("customer with id [%s] not found").formatted(customerId)
-                ));
+        Customer customer = getCustomerById(customerId);
 
-        if(StringUtils.isBlank(customer.profileImageId())){
+        if(StringUtils.isBlank(customer.getProfileImageId())){
             throw new ResourceNotFoundException(
                     "customer with id [%s] profile image not found".formatted(customerId)
             );
@@ -149,6 +137,13 @@ public class CustomerService {
 
         return s3Service.getObject(
                 s3Buckets.getCustomer(),
-                "profile-images/%s/%s".formatted(customerId, customer.profileImageId()));
+                "profile-images/%s/%s".formatted(customerId, customer.getProfileImageId()));
+    }
+
+    private Customer getCustomerById(Long customerId) {
+        return customerDao.selectCustomerById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ("customer with id [%s] not found").formatted(customerId)
+                ));
     }
 }
