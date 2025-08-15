@@ -53,7 +53,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
       - name: Build and Push Docker image with Maven Jib
-        run: mvn -ntp -B package -DskipTests -Ddocker.image.tag=${{ needs.version.outputs.new_release_version }} jib:build
+        run: mvn -ntp -B verify -Ddocker.image.tag=${{ needs.version.outputs.new_release_version }} jib:build
+      - name: Publish coverage report to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ./backend/target/site/jacoco/jacoco.xml
+          base-path: ./backend/src/main/java
 
   deploy:
     name: Deploy to Elastic Beanstalk
