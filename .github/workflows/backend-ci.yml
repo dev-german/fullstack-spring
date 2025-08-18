@@ -9,7 +9,8 @@ on:
       - backend/**
 
 jobs:
-  build:
+  build-and-analyze:
+    name: Build and Analyze
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -43,17 +44,29 @@ jobs:
             refactor
             perf
             test
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'maven'
-      - name: Validate, Compile, Test, and Package with Maven
-        run: mvn -ntp -B verify
-      - name: Publish coverage report to Coveralls
-        uses: coverallsapp/github-action@v2
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ./backend/target/site/jacoco/jacoco.xml
-          base-path: ./backend/src/main/java
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Build, Analyze, and Send to Sonarcloud
+        run: mvn -ntp -B verify sonar:sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

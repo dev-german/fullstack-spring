@@ -1,10 +1,16 @@
 package dev.germane.customer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
+
 import dev.germane.exception.DuplicateResourceException;
 import dev.germane.exception.RequestValidationException;
 import dev.germane.exception.ResourceNotFoundException;
 import dev.germane.s3.S3Buckets;
 import dev.germane.s3.S3Service;
+import java.io.IOException;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,535 +21,462 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class CustomerServiceTest {
 
-    private CustomerService underTest;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
+  private CustomerService underTest;
 
-    @Mock
-    private S3Service s3Service;
+  @Mock private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private S3Buckets s3Buckets;
-
-    @Mock
-    private CustomerDao customerDao;
+  @Mock private S3Service s3Service;
 
-    private final CustomerDTOMapper customerDTOMapper = new CustomerDTOMapper();
+  @Mock private S3Buckets s3Buckets;
 
-    @BeforeEach
-    void setUp() {
-        underTest = new CustomerService(
-                customerDao,
-                passwordEncoder,
-                customerDTOMapper,
-                s3Service,
-                s3Buckets);
-    }
+  @Mock private CustomerDao customerDao;
 
-    @Test
-    void getAllCustomers() {
-        // When
-        underTest.getAllCustomers();
+  private final CustomerDTOMapper customerDTOMapper = new CustomerDTOMapper();
 
-        // Then
-        verify(customerDao).selectAllCustomers();
-    }
+  @BeforeEach
+  void setUp() {
+    underTest =
+        new CustomerService(customerDao, passwordEncoder, customerDTOMapper, s3Service, s3Buckets);
+  }
 
-    @Test
-    void canGetCustomer() {
-        // Given
-        Long id = 1L;
-        Customer customer = new Customer(
-                id, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
-
-        when(customerDao.selectCustomerById(id)).thenReturn(
-                Optional.of(customer)
-        );
-
-        CustomerDTO expected = customerDTOMapper.apply(customer);
-
-        // When
-        CustomerDTO actual = underTest.getCustomer(id);
-
-        // Then
-        assertThat(actual).isEqualTo(expected);
-        verify(customerDao).selectCustomerById(id);
-    }
-
-    @Test
-    void willThrowWhenGetCustomerReturnEmptyOptional() {
-        // Given
-        Long id = 1L;
-
-        when(customerDao.selectCustomerById(id)).thenReturn(
-                Optional.empty()
-        );
-
-        // When
-        // Then
-        assertThatThrownBy(() -> underTest.getCustomer(id))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage(("customer with id [%s] not found").formatted(id));
-    }
+  @Test
+  void getAllCustomers() {
+    // When
+    underTest.getAllCustomers();
 
-    @Test
-    void addCustomer() {
-        // Given
-        String email = "ggrandos@gmail.com";
-
-        when(customerDao.existsCustomerWithEmail(email)).thenReturn(false);
+    // Then
+    verify(customerDao).selectAllCustomers();
+  }
 
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
-                "German", email, "password", 20, Gender.MALE);
+  @Test
+  void canGetCustomer() {
+    // Given
+    Long id = 1L;
+    Customer customer = new Customer(id, "German", "german@gmail.com", "password", 20, Gender.MALE);
 
-        String passwordHash = "$2a$10$Q0kI8UwUJ7CkCfLbVHwQD.DpT4J8QyDhC6PnBn7zIzqTqfS9x8kU";
-        when(passwordEncoder.encode(request.password())).thenReturn(passwordHash);
-
-        // When
-        underTest.addCustomer(request);
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
 
-        // Then
-        ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor
-                .forClass(Customer.class);
-
-        verify(customerDao).insertCustomer(customerArgumentCaptor.capture());
-
-        Customer capturedCustomer = customerArgumentCaptor.getValue();
+    CustomerDTO expected = customerDTOMapper.apply(customer);
 
-        assertThat(capturedCustomer.getId()).isNull();
-        assertThat(capturedCustomer.getName()).isEqualTo(request.name());
-        assertThat(capturedCustomer.getEmail()).isEqualTo(request.email());
-        assertThat(capturedCustomer.getAge()).isEqualTo(request.age());
-        assertThat(capturedCustomer.getGender()).isEqualTo(request.gender());
-        assertThat(capturedCustomer.getPassword()).isEqualTo(passwordHash);
+    // When
+    CustomerDTO actual = underTest.getCustomer(id);
 
-    }
+    // Then
+    assertThat(actual).isEqualTo(expected);
+    verify(customerDao).selectCustomerById(id);
+  }
 
-    @Test
-    void willThrowWhenEmailExistsWhileAddingACostumer() {
-        // Given
-        String email = "ggrandos@gmail.com";
+  @Test
+  void willThrowWhenGetCustomerReturnEmptyOptional() {
+    // Given
+    Long id = 1L;
 
-        when(customerDao.existsCustomerWithEmail(email)).thenReturn(true);
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.empty());
 
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(
-                "German", email, "password", 20, Gender.MALE);
+    // When
+    // Then
+    assertThatThrownBy(() -> underTest.getCustomer(id))
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessage(("customer with id [%s] not found").formatted(id));
+  }
 
-        // When
-        assertThatThrownBy(() -> underTest.addCustomer(request))
-                .isInstanceOf(DuplicateResourceException.class)
-                .hasMessage("Email already taken");
+  @Test
+  void addCustomer() {
+    // Given
+    String email = "ggrandos@gmail.com";
 
-        // Then
-        verify(customerDao, never()).insertCustomer(any());
-    }
+    when(customerDao.existsCustomerWithEmail(email)).thenReturn(false);
 
-    @Test
-    void deleteCustomerById() {
-        // Given
-        Long id = 1L;
+    CustomerRegistrationRequest request =
+        new CustomerRegistrationRequest("German", email, "password", 20, Gender.MALE);
 
-        when(customerDao.existsCustomerWithId(id)).thenReturn(true);
-        // When
-        underTest.deleteCustomerById(id);
+    String passwordHash = "$2a$10$Q0kI8UwUJ7CkCfLbVHwQD.DpT4J8QyDhC6PnBn7zIzqTqfS9x8kU";
+    when(passwordEncoder.encode(request.password())).thenReturn(passwordHash);
 
-        // Then
-        verify(customerDao).deleteById(id);
-    }
+    // When
+    underTest.addCustomer(request);
 
-    @Test
-    void willThrowDeleteCustomerByIdNotExists() {
-        // Given
-        Long id = 1L;
+    // Then
+    ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
 
-        when(customerDao.existsCustomerWithId(id)).thenReturn(false);
-        // When
-        // Then
-        assertThatThrownBy(() -> underTest.deleteCustomerById(id))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Customer with id [%s] not found".formatted(id));
+    verify(customerDao).insertCustomer(customerArgumentCaptor.capture());
 
-        verify(customerDao, never()).deleteById(id);
-    }
+    Customer capturedCustomer = customerArgumentCaptor.getValue();
 
-    @Test
-    void canUpdateAllCustomersProperties() {
-        // Given
-        Long id = 1L;
-        Customer customer = new Customer(
-                id, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
+    assertThat(capturedCustomer.getId()).isNull();
+    assertThat(capturedCustomer.getName()).isEqualTo(request.name());
+    assertThat(capturedCustomer.getEmail()).isEqualTo(request.email());
+    assertThat(capturedCustomer.getAge()).isEqualTo(request.age());
+    assertThat(capturedCustomer.getGender()).isEqualTo(request.gender());
+    assertThat(capturedCustomer.getPassword()).isEqualTo(passwordHash);
+  }
 
-        when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+  @Test
+  void willThrowWhenEmailExistsWhileAddingACostumer() {
+    // Given
+    String email = "ggrandos@gmail.com";
 
-        String newEmail = "germani@gmail.com";
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest("Germani",
-                newEmail, 21, Gender.FEMALE);
+    when(customerDao.existsCustomerWithEmail(email)).thenReturn(true);
 
-        when(customerDao.existsCustomerWithEmail(newEmail)).thenReturn(false);
+    CustomerRegistrationRequest request =
+        new CustomerRegistrationRequest("German", email, "password", 20, Gender.MALE);
 
-        // When
-        underTest.updateCustomer(id, updateRequest);
+    // When
+    assertThatThrownBy(() -> underTest.addCustomer(request))
+        .isInstanceOf(DuplicateResourceException.class)
+        .hasMessage("Email already taken");
 
-        // Then
-        ArgumentCaptor<Customer> customerArgumentCaptor =
-                ArgumentCaptor.forClass(Customer.class);
+    // Then
+    verify(customerDao, never()).insertCustomer(any());
+  }
 
-        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+  @Test
+  void deleteCustomerById() {
+    // Given
+    Long id = 1L;
 
-        Customer capturedCostumer = customerArgumentCaptor.getValue();
+    when(customerDao.existsCustomerWithId(id)).thenReturn(true);
+    // When
+    underTest.deleteCustomerById(id);
 
-        assertThat(capturedCostumer.getName()).isEqualTo(updateRequest.name());
-        assertThat(capturedCostumer.getEmail()).isEqualTo(updateRequest.email());
-        assertThat(capturedCostumer.getAge()).isEqualTo(updateRequest.age());
-        assertThat(capturedCostumer.getGender()).isEqualTo(updateRequest.gender());
-    }
+    // Then
+    verify(customerDao).deleteById(id);
+  }
 
-    @Test
-    void canUpdateOnlyCustomerName() {
-        // Given
-        Long id = 1L;
-        Customer customer = new Customer(
-                id, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
+  @Test
+  void willThrowDeleteCustomerByIdNotExists() {
+    // Given
+    Long id = 1L;
 
-        when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+    when(customerDao.existsCustomerWithId(id)).thenReturn(false);
+    // When
+    // Then
+    assertThatThrownBy(() -> underTest.deleteCustomerById(id))
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessage("Customer with id [%s] not found".formatted(id));
 
-        String newName = "Germani";
+    verify(customerDao, never()).deleteById(id);
+  }
 
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(newName,
-                null, null, null);
+  @Test
+  void canUpdateAllCustomersProperties() {
+    // Given
+    Long id = 1L;
+    Customer customer = new Customer(id, "German", "german@gmail.com", "password", 20, Gender.MALE);
 
-        // When
-        underTest.updateCustomer(id, updateRequest);
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
 
-        // Then
-        ArgumentCaptor<Customer> customerArgumentCaptor =
-                ArgumentCaptor.forClass(Customer.class);
+    String newEmail = "germani@gmail.com";
+    CustomerUpdateRequest updateRequest =
+        new CustomerUpdateRequest("Germani", newEmail, 21, Gender.FEMALE);
 
-        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+    when(customerDao.existsCustomerWithEmail(newEmail)).thenReturn(false);
 
-        Customer capturedCostumer = customerArgumentCaptor.getValue();
+    // When
+    underTest.updateCustomer(id, updateRequest);
 
-        assertThat(capturedCostumer.getName()).isEqualTo(updateRequest.name());
-        assertThat(capturedCostumer.getEmail()).isEqualTo(customer.getEmail());
-        assertThat(capturedCostumer.getAge()).isEqualTo(customer.getAge());
-        assertThat(capturedCostumer.getGender()).isEqualTo(customer.getGender());
-    }
+    // Then
+    ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
 
-    @Test
-    void canUpdateOnlyCustomerEmail() {
-        // Given
-        Long id = 1L;
-        Customer customer = new Customer(
-                id, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
+    verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
 
-        when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+    Customer capturedCostumer = customerArgumentCaptor.getValue();
 
-        String newEmail = "germani@gmail.com";
+    assertThat(capturedCostumer.getName()).isEqualTo(updateRequest.name());
+    assertThat(capturedCostumer.getEmail()).isEqualTo(updateRequest.email());
+    assertThat(capturedCostumer.getAge()).isEqualTo(updateRequest.age());
+    assertThat(capturedCostumer.getGender()).isEqualTo(updateRequest.gender());
+  }
 
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(null,
-                newEmail, null, null);
+  @Test
+  void canUpdateOnlyCustomerName() {
+    // Given
+    Long id = 1L;
+    Customer customer = new Customer(id, "German", "german@gmail.com", "password", 20, Gender.MALE);
 
-        when(customerDao.existsCustomerWithEmail(newEmail)).thenReturn(false);
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
 
-        // When
-        underTest.updateCustomer(id, updateRequest);
+    String newName = "Germani";
 
-        // Then
-        ArgumentCaptor<Customer> customerArgumentCaptor =
-                ArgumentCaptor.forClass(Customer.class);
+    CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(newName, null, null, null);
 
-        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+    // When
+    underTest.updateCustomer(id, updateRequest);
 
-        Customer capturedCostumer = customerArgumentCaptor.getValue();
+    // Then
+    ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
 
-        assertThat(capturedCostumer.getName()).isEqualTo(customer.getName());
-        assertThat(capturedCostumer.getEmail()).isEqualTo(updateRequest.email());
-        assertThat(capturedCostumer.getAge()).isEqualTo(customer.getAge());
-    }
+    verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
 
-    @Test
-    void canUpdateOnlyCustomerAge() {
-        // Given
-        Long id = 1L;
-        Customer customer = new Customer(
-                id, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
+    Customer capturedCostumer = customerArgumentCaptor.getValue();
 
-        when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+    assertThat(capturedCostumer.getName()).isEqualTo(updateRequest.name());
+    assertThat(capturedCostumer.getEmail()).isEqualTo(customer.getEmail());
+    assertThat(capturedCostumer.getAge()).isEqualTo(customer.getAge());
+    assertThat(capturedCostumer.getGender()).isEqualTo(customer.getGender());
+  }
 
-        int newAge = 2;
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(null,
-                null, newAge, null);
+  @Test
+  void canUpdateOnlyCustomerEmail() {
+    // Given
+    Long id = 1L;
+    Customer customer = new Customer(id, "German", "german@gmail.com", "password", 20, Gender.MALE);
 
-        // When
-        underTest.updateCustomer(id, updateRequest);
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
 
-        // Then
-        ArgumentCaptor<Customer> customerArgumentCaptor =
-                ArgumentCaptor.forClass(Customer.class);
+    String newEmail = "germani@gmail.com";
 
-        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+    CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(null, newEmail, null, null);
 
-        Customer capturedCostumer = customerArgumentCaptor.getValue();
+    when(customerDao.existsCustomerWithEmail(newEmail)).thenReturn(false);
 
-        assertThat(capturedCostumer.getName()).isEqualTo(customer.getName());
-        assertThat(capturedCostumer.getEmail()).isEqualTo(customer.getEmail());
-        assertThat(capturedCostumer.getAge()).isEqualTo(updateRequest.age());
-    }
+    // When
+    underTest.updateCustomer(id, updateRequest);
 
-    @Test
-    void canUpdateOnlyCustomerGender() {
-        // Given
-        Long id = 1L;
-        Customer customer = new Customer(
-                id, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
+    // Then
+    ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
 
-        when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+    verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
 
-        Gender newGender = Gender.FEMALE;
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(null,
-                null, null, newGender);
+    Customer capturedCostumer = customerArgumentCaptor.getValue();
 
-        // When
-        underTest.updateCustomer(id, updateRequest);
+    assertThat(capturedCostumer.getName()).isEqualTo(customer.getName());
+    assertThat(capturedCostumer.getEmail()).isEqualTo(updateRequest.email());
+    assertThat(capturedCostumer.getAge()).isEqualTo(customer.getAge());
+  }
 
-        // Then
-        ArgumentCaptor<Customer> customerArgumentCaptor =
-                ArgumentCaptor.forClass(Customer.class);
+  @Test
+  void canUpdateOnlyCustomerAge() {
+    // Given
+    Long id = 1L;
+    Customer customer = new Customer(id, "German", "german@gmail.com", "password", 20, Gender.MALE);
 
-        verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
 
-        Customer capturedCostumer = customerArgumentCaptor.getValue();
+    int newAge = 2;
+    CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(null, null, newAge, null);
 
-        assertThat(capturedCostumer.getName()).isEqualTo(customer.getName());
-        assertThat(capturedCostumer.getEmail()).isEqualTo(customer.getEmail());
-        assertThat(capturedCostumer.getAge()).isEqualTo(customer.getAge());
-        assertThat(capturedCostumer.getGender()).isEqualTo(updateRequest.gender());
-    }
+    // When
+    underTest.updateCustomer(id, updateRequest);
 
-    @Test
-    void willThrowWhenTryingToUpdateCustomerEmailWhenAlreadyTaken() {
-        // Given
-        Long id = 1L;
-        Customer customer = new Customer(
-                id, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
+    // Then
+    ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
 
-        when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
-
-        String newEmail = "germani@gmail.com";
-
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(null,
-                newEmail, null, null);
-
-        when(customerDao.existsCustomerWithEmail(newEmail)).thenReturn(true);
+    verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
 
-        // When
-        // Then
-        assertThatThrownBy(() -> underTest.updateCustomer(id, updateRequest))
-                .isInstanceOf(DuplicateResourceException.class)
-                .hasMessage("Email already taken");
+    Customer capturedCostumer = customerArgumentCaptor.getValue();
 
-        verify(customerDao, never()).updateCustomer(any());
-    }
-
-    @Test
-    void willThrowWhenCustomerUpdateHasNoChanges() {
-        // Given
-        Long id = 1L;
-        Customer customer = new Customer(
-                id, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
-
-        when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
-
-        CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(customer.getName(),
-                customer.getEmail(), customer.getAge(), customer.getGender());
-
-        // When
-        // Then
-        assertThatThrownBy(() -> underTest.updateCustomer(id,  updateRequest))
-                .isInstanceOf(RequestValidationException.class)
-                .hasMessage("no data changes found");
-
-        verify(customerDao, never()).updateCustomer(customer);
-    }
-
-    @Test
-    void canUploadProfileImage() {
-        // Given
-        Long customerId = 1L;
-        Customer customer = new Customer(
-                customerId, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
-        when(customerDao.existsCustomerWithId(customerId)).thenReturn(true);
-
-        byte[] bytes = "Hello World".getBytes();
-        MultipartFile multipartFile = new MockMultipartFile(
-                "file", bytes
-        );
-
-        String bucket = "customer-bucket";
-        when(s3Buckets.getCustomer()).thenReturn(bucket);
-
-        // When
-        underTest.uploadCustomerProfileImage(
-                customerId, multipartFile
-        );
-
-        // Then
-        ArgumentCaptor<String> profileImageIdArgumentCaptor =
-                ArgumentCaptor.forClass(String.class);
-
-        verify(customerDao).updateProfileImageId(
-                eq(customerId),
-                profileImageIdArgumentCaptor.capture()
-        );
-
-        verify(s3Service).putObject(
-                bucket,
-                "profile-images/%s/%s".formatted(customerId, profileImageIdArgumentCaptor.getValue()),
-                bytes
-        );
-    }
-
-    @Test
-    void cannotUploadProfileImageWhenCustomerDoesNotExists() {
-        // Given
-        Long customerId = 1L;
-        when(customerDao.existsCustomerWithId(customerId)).thenReturn(false);
-
-        // When
-        assertThatThrownBy(() -> underTest.uploadCustomerProfileImage(
-                customerId, mock(MultipartFile.class)))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Customer with id [%s] not found".formatted(customerId));
-
-        // Then
-        verify(customerDao).existsCustomerWithId(customerId);
-        verifyNoMoreInteractions(customerDao);
-        verifyNoInteractions(s3Buckets);
-        verifyNoInteractions(s3Service);
-
-    }
-
-    @Test
-    void cannotUploadProfileImageWhenExceptionIsThrown() throws IOException {
-        // Given
-        Long customerId = 1L;
-        Customer customer = new Customer(
-                customerId, "German", "german@gmail.com", "password", 20,
-                Gender.MALE);
-
-        when(customerDao.existsCustomerWithId(customerId)).thenReturn(true);
-
-        MultipartFile multipartFile = mock(MultipartFile.class);
-        when(multipartFile.getBytes()).thenThrow(IOException.class);
-
-        String bucket = "customer-bucket";
-        when(s3Buckets.getCustomer()).thenReturn(bucket);
-
-        // When
-        assertThatThrownBy(() -> underTest.uploadCustomerProfileImage(
-                customerId, multipartFile
-        ))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("failed to upload profile image")
-                .hasRootCauseInstanceOf(IOException.class);
-
-        // Then
-        verify(customerDao, never()).updateProfileImageId(
-                any(),
-                any()
-        );
-    }
-
-    @Test
-    void canDownloadProfileImage() {
-        // Given
-        Long customerId = 1L;
-        String profileImageId = "profile_image_id1234";
-        Customer customer = new Customer(
-                customerId,
-                "German",
-                "german@gmail.com",
-                "password",
-                20,
-                Gender.MALE,
-                profileImageId);
-
-        when(customerDao.selectCustomerById(customerId)).thenReturn(Optional.of(customer));
-
-        String bucket = "customer-bucket";
-        when(s3Buckets.getCustomer()).thenReturn(bucket);
-
-        byte[] expectedImage = "images".getBytes();
-        when(s3Service.getObject(
-                bucket,
-                "profile-images/%s/%s".formatted(customerId, profileImageId))
-        ).thenReturn(expectedImage);
-
-        // When
-        byte[] actualImage = underTest.getCustomerProfileImage(customerId);
-
-        // Then
-        assertThat(actualImage).isEqualTo(expectedImage);
-    }
-
-    @Test
-    void cannotDownloadProfileImageWhenCustomerHasNoProfileImageId() {
-        // Given
-        Long customerId = 1L;
-        Customer customer = new Customer(
-                customerId,
-                "German",
-                "german@gmail.com",
-                "password",
-                20,
-                Gender.MALE);
-
-        when(customerDao.selectCustomerById(customerId)).thenReturn(Optional.of(customer));
-
-        // When
-        // Then
-        assertThatThrownBy(() -> underTest.getCustomerProfileImage(customerId))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("customer with id [%s] profile image not found".formatted(customerId));
-
-        verifyNoInteractions(s3Buckets);
-        verifyNoInteractions(s3Service);
-    }
-
-    @Test
-    void cannotDownloadProfileImageWhenCustomerDoesNotExist() {
-        // Given
-        Long customerId = 1L;
-
-        when(customerDao.selectCustomerById(customerId)).thenReturn(Optional.empty());
-
-        // When
-        // Then
-        assertThatThrownBy(() -> underTest.getCustomerProfileImage(customerId))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("customer with id [%s] not found".formatted(customerId));
-
-        verifyNoInteractions(s3Buckets);
-        verifyNoInteractions(s3Service);
-    }
+    assertThat(capturedCostumer.getName()).isEqualTo(customer.getName());
+    assertThat(capturedCostumer.getEmail()).isEqualTo(customer.getEmail());
+    assertThat(capturedCostumer.getAge()).isEqualTo(updateRequest.age());
+  }
+
+  @Test
+  void canUpdateOnlyCustomerGender() {
+    // Given
+    Long id = 1L;
+    Customer customer = new Customer(id, "German", "german@gmail.com", "password", 20, Gender.MALE);
+
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+
+    Gender newGender = Gender.FEMALE;
+    CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(null, null, null, newGender);
+
+    // When
+    underTest.updateCustomer(id, updateRequest);
+
+    // Then
+    ArgumentCaptor<Customer> customerArgumentCaptor = ArgumentCaptor.forClass(Customer.class);
+
+    verify(customerDao).updateCustomer(customerArgumentCaptor.capture());
+
+    Customer capturedCostumer = customerArgumentCaptor.getValue();
+
+    assertThat(capturedCostumer.getName()).isEqualTo(customer.getName());
+    assertThat(capturedCostumer.getEmail()).isEqualTo(customer.getEmail());
+    assertThat(capturedCostumer.getAge()).isEqualTo(customer.getAge());
+    assertThat(capturedCostumer.getGender()).isEqualTo(updateRequest.gender());
+  }
+
+  @Test
+  void willThrowWhenTryingToUpdateCustomerEmailWhenAlreadyTaken() {
+    // Given
+    Long id = 1L;
+    Customer customer = new Customer(id, "German", "german@gmail.com", "password", 20, Gender.MALE);
+
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+
+    String newEmail = "germani@gmail.com";
+
+    CustomerUpdateRequest updateRequest = new CustomerUpdateRequest(null, newEmail, null, null);
+
+    when(customerDao.existsCustomerWithEmail(newEmail)).thenReturn(true);
+
+    // When
+    // Then
+    assertThatThrownBy(() -> underTest.updateCustomer(id, updateRequest))
+        .isInstanceOf(DuplicateResourceException.class)
+        .hasMessage("Email already taken");
+
+    verify(customerDao, never()).updateCustomer(any());
+  }
+
+  @Test
+  void willThrowWhenCustomerUpdateHasNoChanges() {
+    // Given
+    Long id = 1L;
+    Customer customer = new Customer(id, "German", "german@gmail.com", "password", 20, Gender.MALE);
+
+    when(customerDao.selectCustomerById(id)).thenReturn(Optional.of(customer));
+
+    CustomerUpdateRequest updateRequest =
+        new CustomerUpdateRequest(
+            customer.getName(), customer.getEmail(), customer.getAge(), customer.getGender());
+
+    // When
+    // Then
+    assertThatThrownBy(() -> underTest.updateCustomer(id, updateRequest))
+        .isInstanceOf(RequestValidationException.class)
+        .hasMessage("no data changes found");
+
+    verify(customerDao, never()).updateCustomer(customer);
+  }
+
+  @Test
+  void canUploadProfileImage() {
+    // Given
+    Long customerId = 1L;
+    Customer customer =
+        new Customer(customerId, "German", "german@gmail.com", "password", 20, Gender.MALE);
+    when(customerDao.existsCustomerWithId(customerId)).thenReturn(true);
+
+    byte[] bytes = "Hello World".getBytes();
+    MultipartFile multipartFile = new MockMultipartFile("file", bytes);
+
+    String bucket = "customer-bucket";
+    when(s3Buckets.getCustomer()).thenReturn(bucket);
+
+    // When
+    underTest.uploadCustomerProfileImage(customerId, multipartFile);
+
+    // Then
+    ArgumentCaptor<String> profileImageIdArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+    verify(customerDao)
+        .updateProfileImageId(eq(customerId), profileImageIdArgumentCaptor.capture());
+
+    verify(s3Service)
+        .putObject(
+            bucket,
+            "profile-images/%s/%s".formatted(customerId, profileImageIdArgumentCaptor.getValue()),
+            bytes);
+  }
+
+  @Test
+  void cannotUploadProfileImageWhenCustomerDoesNotExists() {
+    // Given
+    Long customerId = 1L;
+    when(customerDao.existsCustomerWithId(customerId)).thenReturn(false);
+
+    // When
+    assertThatThrownBy(
+            () -> underTest.uploadCustomerProfileImage(customerId, mock(MultipartFile.class)))
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessage("Customer with id [%s] not found".formatted(customerId));
+
+    // Then
+    verify(customerDao).existsCustomerWithId(customerId);
+    verifyNoMoreInteractions(customerDao);
+    verifyNoInteractions(s3Buckets);
+    verifyNoInteractions(s3Service);
+  }
+
+  @Test
+  void cannotUploadProfileImageWhenExceptionIsThrown() throws IOException {
+    // Given
+    Long customerId = 1L;
+    Customer customer =
+        new Customer(customerId, "German", "german@gmail.com", "password", 20, Gender.MALE);
+
+    when(customerDao.existsCustomerWithId(customerId)).thenReturn(true);
+
+    MultipartFile multipartFile = mock(MultipartFile.class);
+    when(multipartFile.getBytes()).thenThrow(IOException.class);
+
+    String bucket = "customer-bucket";
+    when(s3Buckets.getCustomer()).thenReturn(bucket);
+
+    // When
+    assertThatThrownBy(() -> underTest.uploadCustomerProfileImage(customerId, multipartFile))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("failed to upload profile image")
+        .hasRootCauseInstanceOf(IOException.class);
+
+    // Then
+    verify(customerDao, never()).updateProfileImageId(any(), any());
+  }
+
+  @Test
+  void canDownloadProfileImage() {
+    // Given
+    Long customerId = 1L;
+    String profileImageId = "profile_image_id1234";
+    Customer customer =
+        new Customer(
+            customerId, "German", "german@gmail.com", "password", 20, Gender.MALE, profileImageId);
+
+    when(customerDao.selectCustomerById(customerId)).thenReturn(Optional.of(customer));
+
+    String bucket = "customer-bucket";
+    when(s3Buckets.getCustomer()).thenReturn(bucket);
+
+    byte[] expectedImage = "images".getBytes();
+    when(s3Service.getObject(bucket, "profile-images/%s/%s".formatted(customerId, profileImageId)))
+        .thenReturn(expectedImage);
+
+    // When
+    byte[] actualImage = underTest.getCustomerProfileImage(customerId);
+
+    // Then
+    assertThat(actualImage).isEqualTo(expectedImage);
+  }
+
+  @Test
+  void cannotDownloadProfileImageWhenCustomerHasNoProfileImageId() {
+    // Given
+    Long customerId = 1L;
+    Customer customer =
+        new Customer(customerId, "German", "german@gmail.com", "password", 20, Gender.MALE);
+
+    when(customerDao.selectCustomerById(customerId)).thenReturn(Optional.of(customer));
+
+    // When
+    // Then
+    assertThatThrownBy(() -> underTest.getCustomerProfileImage(customerId))
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessage("customer with id [%s] profile image not found".formatted(customerId));
+
+    verifyNoInteractions(s3Buckets);
+    verifyNoInteractions(s3Service);
+  }
+
+  @Test
+  void cannotDownloadProfileImageWhenCustomerDoesNotExist() {
+    // Given
+    Long customerId = 1L;
+
+    when(customerDao.selectCustomerById(customerId)).thenReturn(Optional.empty());
+
+    // When
+    // Then
+    assertThatThrownBy(() -> underTest.getCustomerProfileImage(customerId))
+        .isInstanceOf(ResourceNotFoundException.class)
+        .hasMessage("customer with id [%s] not found".formatted(customerId));
+
+    verifyNoInteractions(s3Buckets);
+    verifyNoInteractions(s3Service);
+  }
 }
