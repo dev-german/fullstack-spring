@@ -5,13 +5,21 @@ import java.util.Optional;
 
 public interface CustomerDao {
 
-    List<Customer> selectAllCustomers();
-    Optional<Customer> selectCustomerById(Long customerId);
-    void insertCustomer(Customer customer);
-    boolean existsCustomerWithEmail(String email);
-    boolean existsCustomerWithId(Long customerId);
-    void deleteById(Long customerId);
-    void updateCustomer(Customer customer);
-    Optional<Customer> selectUserByEmail(String email);
-    void updateProfileImageId(Long customerId, String profileImageId);
+  List<Customer> selectAllCustomers();
+
+  Optional<Customer> selectCustomerById(Long customerId);
+
+  void insertCustomer(Customer customer);
+
+  boolean existsCustomerWithEmail(String email);
+
+  boolean existsCustomerWithId(Long customerId);
+
+  void deleteById(Long customerId);
+
+  void updateCustomer(Customer customer);
+
+  Optional<Customer> selectUserByEmail(String email);
+
+  void updateProfileImageId(Long customerId, String profileImageId);
 }

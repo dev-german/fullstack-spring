@@ -1,5 +1,11 @@
 package dev.germane.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,107 +19,89 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class S3ServiceTest {
 
-    @Mock
-    private S3Client s3Client;
+  @Mock private S3Client s3Client;
 
-    private S3Service underTest;
+  private S3Service underTest;
 
-    @BeforeEach
-    void setUp() {
-        underTest = new S3Service(s3Client);
-    }
+  @BeforeEach
+  void setUp() {
+    underTest = new S3Service(s3Client);
+  }
 
-    @Test
-    void canPutObject() throws IOException {
-        // Given
-        String bucket = "customer";
-        String key = "foo";
-        byte[] data = "customer-bucket".getBytes();
+  @Test
+  void canPutObject() throws IOException {
+    // Given
+    String bucket = "customer";
+    String key = "foo";
+    byte[] data = "customer-bucket".getBytes();
 
-        // When
-        underTest.putObject(bucket, key, data);
+    // When
+    underTest.putObject(bucket, key, data);
 
-        // Then
-        ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor =
-                ArgumentCaptor.forClass(PutObjectRequest.class);
+    // Then
+    ArgumentCaptor<PutObjectRequest> putObjectRequestArgumentCaptor =
+        ArgumentCaptor.forClass(PutObjectRequest.class);
 
-        ArgumentCaptor<RequestBody> requestBodyArgumentCaptor =
-                ArgumentCaptor.forClass(RequestBody.class);
+    ArgumentCaptor<RequestBody> requestBodyArgumentCaptor =
+        ArgumentCaptor.forClass(RequestBody.class);
 
-        verify(s3Client).putObject(
-                putObjectRequestArgumentCaptor.capture(),
-                requestBodyArgumentCaptor.capture()
-        );
+    verify(s3Client)
+        .putObject(putObjectRequestArgumentCaptor.capture(), requestBodyArgumentCaptor.capture());
 
-        PutObjectRequest putObjectRequestArgumentCaptorValue =
-                putObjectRequestArgumentCaptor.getValue();
+    PutObjectRequest putObjectRequestArgumentCaptorValue =
+        putObjectRequestArgumentCaptor.getValue();
 
-        assertThat(putObjectRequestArgumentCaptorValue.bucket()).isEqualTo(bucket);
-        assertThat(putObjectRequestArgumentCaptorValue.key()).isEqualTo(key);
+    assertThat(putObjectRequestArgumentCaptorValue.bucket()).isEqualTo(bucket);
+    assertThat(putObjectRequestArgumentCaptorValue.key()).isEqualTo(key);
 
-        RequestBody requestBodyArgumentCaptorValue =
-                requestBodyArgumentCaptor.getValue();
+    RequestBody requestBodyArgumentCaptorValue = requestBodyArgumentCaptor.getValue();
 
-        assertThat(
-                requestBodyArgumentCaptorValue.contentStreamProvider().newStream().readAllBytes()
-        ).isEqualTo(RequestBody.fromBytes(data).contentStreamProvider().newStream().readAllBytes());
-    }
+    assertThat(requestBodyArgumentCaptorValue.contentStreamProvider().newStream().readAllBytes())
+        .isEqualTo(RequestBody.fromBytes(data).contentStreamProvider().newStream().readAllBytes());
+  }
 
-    @Test
-    void canGetObject() throws IOException {
-        // Given
-        String bucket = "customer";
-        String key = "foo";
-        byte[] data = "customer-bucket".getBytes();
+  @Test
+  void canGetObject() throws IOException {
+    // Given
+    String bucket = "customer";
+    String key = "foo";
+    byte[] data = "customer-bucket".getBytes();
 
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .build();
+    GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(key).build();
 
-        ResponseInputStream<GetObjectResponse> res = mock(ResponseInputStream.class);
-        when(res.readAllBytes()).thenReturn(data);
+    ResponseInputStream<GetObjectResponse> res = mock(ResponseInputStream.class);
+    when(res.readAllBytes()).thenReturn(data);
 
-        when(s3Client.getObject(eq(getObjectRequest))).thenReturn(res);
+    when(s3Client.getObject(eq(getObjectRequest))).thenReturn(res);
 
-        // When
-        byte[] bytes = underTest.getObject(bucket, key);
+    // When
+    byte[] bytes = underTest.getObject(bucket, key);
 
-        // Then
-        assertThat(bytes).isEqualTo(data);
-    }
+    // Then
+    assertThat(bytes).isEqualTo(data);
+  }
 
-    @Test
-    void willThrowWhenGetObject() throws IOException {
-        // Given
-        String bucket = "customer";
-        String key = "foo";
+  @Test
+  void willThrowWhenGetObject() throws IOException {
+    // Given
+    String bucket = "customer";
+    String key = "foo";
 
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .build();
+    GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(key).build();
 
-        ResponseInputStream<GetObjectResponse> res = mock(ResponseInputStream.class);
-        when(res.readAllBytes()).thenThrow(new IOException("Cannot read bytes"));
+    ResponseInputStream<GetObjectResponse> res = mock(ResponseInputStream.class);
+    when(res.readAllBytes()).thenThrow(new IOException("Cannot read bytes"));
 
-        when(s3Client.getObject(eq(getObjectRequest))).thenReturn(res);
+    when(s3Client.getObject(eq(getObjectRequest))).thenReturn(res);
 
-        // When
-        // Then
-        assertThatThrownBy(() -> underTest.getObject(bucket, key))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Cannot read bytes")
-                .hasRootCauseInstanceOf(IOException.class);
-    }
+    // When
+    // Then
+    assertThatThrownBy(() -> underTest.getObject(bucket, key))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("Cannot read bytes")
+        .hasRootCauseInstanceOf(IOException.class);
+  }
 }
