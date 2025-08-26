@@ -23,12 +23,15 @@ public class CustomerController {
     }
 
     @GetMapping
-    public List<CustomerDTO> getCustomers() {
-        return customerService.getAllCustomers();
+    public List<CustomerDTO> getCustomers(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email) {
+        return customerService.getCustomers(name, email);
     }
 
     @GetMapping("{customerId}")
-    public CustomerDTO getCustomerById(@PathVariable("customerId") Long customerId) {
+    public CustomerDTO getCustomer(
+            @PathVariable("customerId") Long customerId) {
         return customerService.getCustomer(customerId);
     }
 

@@ -1,5 +1,7 @@
 package dev.germane.customer;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,6 +19,25 @@ public class CustomerJPADataAccessService implements CustomerDao{
     @Override
     public List<Customer> selectAllCustomers() {
         return customerRepository.findAll();
+    }
+
+    @Override
+    public List<Customer> selectCustomersByFilter(String name, String email) {
+        Specification<Customer> spec = Specification.where(null);
+
+        if (StringUtils.isNotBlank(name)) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + name.toLowerCase() + "%")
+            );
+        }
+
+        if (StringUtils.isNotBlank(email)) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + email.toLowerCase() + "%")
+            );
+        }
+
+        return customerRepository.findAll(spec);
     }
 
     @Override

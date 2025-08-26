@@ -35,8 +35,8 @@ public class CustomerService {
         this.s3Buckets = s3Buckets;
     }
 
-    public List<CustomerDTO> getAllCustomers() {
-        return customerDao.selectAllCustomers()
+    public List<CustomerDTO> getCustomers(String name, String email) {
+        return customerDao.selectCustomersByFilter(name, email)
                 .stream()
                 .map(customerDTOMapper)
                 .collect(Collectors.toList());

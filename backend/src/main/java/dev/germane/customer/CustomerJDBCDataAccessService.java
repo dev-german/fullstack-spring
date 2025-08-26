@@ -1,8 +1,10 @@
 package dev.germane.customer;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +26,26 @@ public class CustomerJDBCDataAccessService implements CustomerDao {
                 FROM customer
                 """;
         return jdbcTemplate.query(sql, customerRowMapper);
+    }
+
+    @Override
+    public List<Customer> selectCustomersByFilter(String name, String email) {
+        var sql = new StringBuilder("SELECT id, name, email, password, age, gender, profile_image_id FROM customer WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (StringUtils.isNotBlank(name)) {
+            sql.append(" AND name ILIKE ?");
+            params.add("%" + name + "%");
+        }
+
+        if (StringUtils.isNotBlank(email)) {
+            sql.append(" AND email ILIKE ?");
+            params.add("%" + email + "%");
+        }
+
+        return jdbcTemplate.query(
+                sql.toString(), customerRowMapper, params.toArray()
+        );
     }
 
     @Override

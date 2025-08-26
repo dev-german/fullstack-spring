@@ -52,12 +52,25 @@ class CustomerServiceTest {
     }
 
     @Test
-    void getAllCustomers() {
+    void canGetCustomersWithNoFilters() {
         // When
-        underTest.getAllCustomers();
+        underTest.getCustomers(null, null);
 
         // Then
-        verify(customerDao).selectAllCustomers();
+        verify(customerDao).selectCustomersByFilter(null, null);
+    }
+
+    @Test
+    void canGetCustomersWithFilters() {
+        // Given
+        String name = "Alex";
+        String email = "alex@gmail.com";
+
+        // When
+        underTest.getCustomers(name, email);
+
+        // Then
+        verify(customerDao).selectCustomersByFilter(name, email);
     }
 
     @Test
